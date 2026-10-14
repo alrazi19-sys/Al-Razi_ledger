@@ -1,0 +1,982 @@
+# Al-Razi_ledger
+Data
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>আল রাজীর ব্যক্তিগত দৈনন্দিন লেনদেন</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #f0f4f8; color: #1a202c; font-size: 14px; line-height: 1.5; }
+  .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: #fff; padding: 14px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .header h1 { font-size: 16px; margin-bottom: 8px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .summary-card { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 10px; }
+  .summary-card .label { font-size: 11px; opacity: 0.9; }
+  .summary-card .value { font-size: 14px; font-weight: 700; margin-top: 2px; }
+  .tabs { display: flex; background: #fff; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 99; overflow-x: auto; }
+  .tab { flex: 1; text-align: center; padding: 11px 6px; cursor: pointer; font-weight: 600; font-size: 12px; color: #64748b; border-bottom: 3px solid transparent; white-space: nowrap; min-width: 80px; }
+  .tab.active { color: #1e3a8a; border-bottom-color: #1e3a8a; background: #eff6ff; }
+  .container { padding: 12px; max-width: 900px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .filter-bar { background: #fff; border-radius: 10px; padding: 10px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .filter-bar input, .filter-bar select { width: 100%; padding: 9px 10px; margin-bottom: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #f8fafc; }
+  .filter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .btn { display: inline-block; padding: 9px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; }
+  .btn-primary { background: #1e3a8a; color: #fff; }
+  .btn-success { background: #059669; color: #fff; }
+  .btn-danger { background: #dc2626; color: #fff; }
+  .btn-warning { background: #d97706; color: #fff; }
+  .btn-outline { background: #fff; color: #1e3a8a; border: 1px solid #1e3a8a; }
+  .btn-sm { padding: 5px 8px; font-size: 11px; }
+  .form-card { background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .form-card h3 { font-size: 15px; margin-bottom: 10px; color: #1e3a8a; }
+  .form-group { margin-bottom: 10px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #475569; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #f8fafc; }
+  .form-group textarea { resize: vertical; min-height: 50px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .table-wrap { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #1e3a8a; color: #fff; padding: 9px 6px; text-align: left; font-weight: 600; font-size: 11px; }
+  td { padding: 8px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  .amt-in { color: #059669; font-weight: 700; }
+  .amt-out { color: #dc2626; font-weight: 700; }
+  .amt-inv { color: #7c3aed; font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+  .badge-in { background: #d1fae5; color: #065f46; }
+  .badge-out { background: #fee2e2; color: #991b1b; }
+  .badge-inv { background: #ede9fe; color: #5b21b6; }
+  .empty { text-align: center; padding: 40px 20px; color: #94a3b8; }
+  .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; padding: 12px; flex-wrap: wrap; }
+  .pagination button { padding: 6px 12px; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; font-size: 12px; }
+  .pagination button.active { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
+  .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .inv-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .inv-card { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #7c3aed; }
+  .inv-card .label { font-size: 11px; color: #64748b; }
+  .inv-card .value { font-size: 16px; font-weight: 700; color: #5b21b6; margin-top: 4px; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity .3s; pointer-events: none; max-width: 90%; text-align: center; }
+  .toast.show { opacity: 1; }
+  .action-btns { display: flex; gap: 4px; }
+  @media (max-width: 480px) {
+    .header h1 { font-size: 14px; }
+    .summary-card .value { font-size: 12px; }
+    table { font-size: 11px; }
+    td, th { padding: 6px 4px; }
+    .filter-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📒 আল রাজীর ব্যক্তিগত দৈনন্দিন লেনদেন</h1>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="label">মোট আয়</div><div class="value" id="sumIn">০ ৳</div></div>
+    <div class="summary-card"><div class="label">মোট ব্যয়</div><div class="value" id="sumOut">০ ৳</div></div>
+    <div class="summary-card"><div class="label">মোট বিনিয়োগ</div><div class="value" id="sumInv">০ ৳</div></div>
+    <div class="summary-card"><div class="label">বর্তমান ব্যালেন্স</div><div class="value" id="sumBal">০ ৳</div></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="all">সব লেনদেন</div>
+  <div class="tab" data-tab="add">➕ নতুন এন্ট্রি</div>
+  <div class="tab" data-tab="investment">বিনিয়োগ</div>
+  <div class="tab" data-tab="report">রিপোর্ট</div>
+</div>
+
+<div class="container">
+
+  <div class="panel active" id="panel-all">
+    <div class="filter-bar">
+      <input type="text" id="searchBox" placeholder="🔍 নাম, বিবরণ, তারিখ বা টাকা দিয়ে খুঁজুন...">
+      <div class="filter-row">
+        <input type="date" id="fromDate">
+        <input type="date" id="toDate">
+      </div>
+      <div class="filter-row">
+        <select id="filterType">
+          <option value="">সব ধরন</option>
+          <option value="in">আয়</option>
+          <option value="out">ব্যয়</option>
+          <option value="inv">বিনিয়োগ</option>
+        </select>
+        <select id="filterCat"><option value="">সব খাত</option></select>
+      </div>
+      <div style="display:flex; gap:6px; margin-top:6px;">
+        <button class="btn btn-outline btn-sm" style="flex:1" onclick="clearFilters()">ফিল্টার রিসেট</button>
+        <button class="btn btn-success btn-sm" style="flex:1" onclick="exportCSV()">📥 Excel/CSV এক্সপোর্ট</button>
+      </div>
+    </div>
+    <div style="font-size:12px; color:#64748b; margin-bottom:8px;" id="resultCount"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>তারিখ</th><th>বিবরণ / নাম</th><th>খাত</th><th style="text-align:right;">টাকা</th><th></th></tr></thead>
+        <tbody id="txBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <div class="panel" id="panel-add">
+    <div class="form-card">
+      <h3 id="formTitle">➕ নতুন লেনদেন যোগ করুন</h3>
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group"><label>তারিখ *</label><input type="date" id="fDate"></div>
+        <div class="form-group"><label>ধরন *</label>
+          <select id="fType">
+            <option value="out">ব্যয় (Out)</option>
+            <option value="in">আয় (In)</option>
+            <option value="inv">বিনিয়োগ (Investment)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>বিবরণ / নাম *</label><input type="text" id="fDesc" placeholder="যেমন: জোহান কে দিলাম / রফিক স্টোন দিলো..."></div>
+      <div class="form-row">
+        <div class="form-group"><label>টাকার পরিমাণ *</label><input type="number" id="fAmount" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>খাত</label>
+          <select id="fCat">
+            <option value="সাধারণ">সাধারণ</option>
+            <option value="স্টোন/ইট">স্টোন/ইট</option>
+            <option value="রেস্টুরেন্ট">রেস্টুরেন্ট</option>
+            <option value="ব্যাংক">ব্যাংক</option>
+            <option value="বিনিয়োগ">বিনিয়োগ</option>
+            <option value="পরিবার">পরিবার</option>
+            <option value="যাতায়াত">যাতায়াত</option>
+            <option value="খাবার">খাবার</option>
+            <option value="চিকিৎসা">চিকিৎসা</option>
+            <option value="শিক্ষা">শিক্ষা</option>
+            <option value="সরকারি/আইন">সরকারি/আইন</option>
+            <option value="অন্যান্য">অন্যান্য</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>নোট / মন্তব্য</label><textarea id="fNote" placeholder="ঐচ্ছিক..."></textarea></div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-primary" style="flex:2" onclick="saveEntry()">সংরক্ষণ করুন</button>
+        <button class="btn btn-outline" style="flex:1" onclick="resetForm()">বাতিল</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-investment">
+    <div class="inv-summary">
+      <div class="inv-card"><div class="label">মোট বিনিয়োগ (In)</div><div class="value" id="invTotalIn">০ ৳</div></div>
+      <div class="inv-card"><div class="label">বিনিয়োগ থেকে আয়</div><div class="value" id="invTotalRet">০ ৳</div></div>
+    </div>
+    <div class="filter-bar"><input type="text" id="invSearch" placeholder="🔍 বিনিয়োগে খুঁজুন..."></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>তারিখ</th><th>বিবরণ</th><th style="text-align:right;">টাকা</th></tr></thead><tbody id="invBody"></tbody></table>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-report">
+    <div class="form-card"><h3>📊 মাসিক সারসংক্ষেপ</h3><div id="monthlyReport"></div></div>
+    <div class="form-card"><h3>📂 খাতভিত্তিক সারসংক্ষেপ</h3><div id="catReport"></div></div>
+    <div class="form-card">
+      <h3>⚙️ ডেটা ম্যানেজমেন্ট</h3>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-success" onclick="exportCSV()">📥 সব ডেটা Excel/CSV এক্সপোর্ট</button>
+        <button class="btn btn-primary" onclick="backupJSON()">💾 ব্যাকআপ (JSON) ডাউনলোড</button>
+        <button class="btn btn-warning" onclick="document.getElementById('importFile').click()">📤 ব্যাকআপ থেকে রিস্টোর</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="restoreJSON(event)">
+        <button class="btn btn-danger" onclick="clearAllData()">🗑️ সব ডেটা মুছে ফেলুন</button>
+      </div>
+      <p style="font-size:11px; color:#64748b; margin-top:10px;">ডেটা আপনার ব্রাউজারের localStorage-এ সংরক্ষিত। নিয়মিত ব্যাকআপ নিন।</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'alraji_ledger_v1';
+let transactions = [];
+let currentPage = 1;
+const PAGE_SIZE = 50;
+
+const SEED_DATA = [
+  {date:'2016-08-15',desc:'fish',type:'out',amount:1000,cat:'খাবার'},
+  {date:'2016-08-15',desc:'mudikhana',type:'out',amount:1300,cat:'খাবার'},
+  {date:'2016-08-15',desc:'sobji',type:'out',amount:300,cat:'খাবার'},
+  {date:'2016-08-15',desc:'daal',type:'out',amount:650,cat:'খাবার'},
+  {date:'2016-08-16',desc:'mamun varatiya oil er dam',type:'out',amount:500,cat:'সাধারণ'},
+  {date:'2016-08-16',desc:'bike parts',type:'out',amount:30,cat:'যাতায়াত'},
+  {date:'2016-08-16',desc:'garez',type:'out',amount:50,cat:'যাতায়াত'},
+  {date:'2016-08-16',desc:'Rda roni vara dilo',type:'in',amount:3000,cat:'সাধারণ'},
+  {date:'2016-08-16',desc:'Rakib k dhar dilam',type:'out',amount:3000,cat:'সাধারণ'},
+  {date:'2016-08-17',desc:'shamima vazin',type:'out',amount:60,cat:'পরিবার'},
+  {date:'2016-08-18',desc:'egg',type:'out',amount:34,cat:'খাবার'},
+  {date:'2016-08-18',desc:'sijbl theke uttolon',type:'out',amount:8000,cat:'ব্যাংক'},
+  {date:'2016-08-18',desc:'Trade licence Raj. Stone',type:'out',amount:4000,cat:'সরকারি/আইন'},
+  {date:'2016-08-18',desc:'Zahid K IRC korte',type:'out',amount:6000,cat:'সরকারি/আইন'},
+  {date:'2016-08-22',desc:'sijbl a joma dilam',type:'out',amount:18500,cat:'ব্যাংক'},
+  {date:'2016-08-28',desc:'sijbl theke uttolon korlam',type:'out',amount:15000,cat:'ব্যাংক'},
+  {date:'2016-08-28',desc:'sajjad driver k dilam',type:'out',amount:2000,cat:'যাতায়াত'},
+  {date:'2016-08-28',desc:'helper k dilam',type:'out',amount:500,cat:'সাধারণ'},
+  {date:'2016-08-28',desc:'rakib k DBBL a patalam',type:'out',amount:18000,cat:'ব্যাংক'},
+  {date:'2016-08-30',desc:'electric bill dilam',type:'out',amount:5340,cat:'সাধারণ'},
+  {date:'2016-08-31',desc:'towfik er kache dhar nilam',type:'in',amount:15000,cat:'সাধারণ'},
+  {date:'2016-08-31',desc:'brac bank a joma dilam',type:'out',amount:20050,cat:'ব্যাংক'},
+  {date:'2016-09-04',desc:'kacha bazar',type:'out',amount:320,cat:'খাবার'},
+  {date:'2016-09-05',desc:'polaw er chal',type:'out',amount:560,cat:'খাবার'},
+  {date:'2016-09-05',desc:'gorur gosto',type:'out',amount:1130,cat:'খাবার'},
+  {date:'2016-09-05',desc:'murgir gosto',type:'out',amount:750,cat:'খাবার'},
+  {date:'2016-09-05',desc:'Rakib k dilam',type:'out',amount:13000,cat:'সাধারণ'},
+  {date:'2016-09-05',desc:'Towfik k dilam',type:'out',amount:15000,cat:'সাধারণ'},
+  {date:'2016-09-06',desc:'sujon bakher k dilam bkash a',type:'out',amount:5100,cat:'সাধারণ'},
+  {date:'2016-09-09',desc:'rupa dilo rda er',type:'in',amount:10000,cat:'সাধারণ'},
+  {date:'2016-09-10',desc:'lipy k dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2016-09-10',desc:'robi dilo bkash a',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2016-09-12',desc:'Rajib acc k dilam',type:'out',amount:2040,cat:'সাধারণ'},
+  {date:'2016-09-12',desc:'bablu welding k dilam',type:'out',amount:2040,cat:'সাধারণ'},
+  {date:'2016-09-25',desc:'Tovfik dilo',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2016-09-25',desc:'Pump tutul k dilam',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2016-09-27',desc:'khushi dilo dhar',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2016-09-27',desc:'Electric bill dilam',type:'out',amount:13000,cat:'সাধারণ'},
+  {date:'2016-10-06',desc:'fish',type:'out',amount:680,cat:'খাবার'},
+  {date:'2016-10-06',desc:'egg',type:'out',amount:270,cat:'খাবার'},
+  {date:'2016-10-06',desc:'mudikhana',type:'out',amount:1300,cat:'খাবার'},
+  {date:'2016-10-07',desc:'cycle garez',type:'out',amount:430,cat:'যাতায়াত'},
+  {date:'2016-10-07',desc:'elish fish',type:'out',amount:1500,cat:'খাবার'},
+  {date:'2016-10-07',desc:'rakib k dilam',type:'out',amount:15000,cat:'সাধারণ'},
+  {date:'2016-10-13',desc:'M Emon er kache nilam',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2016-10-13',desc:'Meen er kache nilam',type:'in',amount:5000,cat:'সাধারণ'},
+  {date:'2016-10-13',desc:'Towfik vai k dilam',type:'out',amount:15000,cat:'সাধারণ'},
+  {date:'2016-10-18',desc:'chitto patalo sona theke',type:'out',amount:100000,cat:'বিনিয়োগ'},
+  {date:'2016-10-18',desc:'sunny k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2016-10-18',desc:'IPS k dilam',type:'out',amount:16000,cat:'সাধারণ'},
+  {date:'2016-10-19',desc:'Royel k dilam sjibl a',type:'out',amount:30000,cat:'ব্যাংক'},
+  {date:'2016-10-22',desc:'sujon bakher k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2016-10-24',desc:'Robi vai dilo',type:'in',amount:5000,cat:'সাধারণ'},
+  {date:'2016-10-26',desc:'kacha bazar',type:'out',amount:1000,cat:'খাবার'},
+  {date:'2016-10-26',desc:'Rakib k dilam dhar',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2016-10-27',desc:'Towfik vai dilo dhar',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2016-10-30',desc:'BRAC a joma dilam',type:'out',amount:45000,cat:'ব্যাংক'},
+  {date:'2016-11-08',desc:'RDA varatiya dilo',type:'in',amount:6000,cat:'সাধারণ'},
+  {date:'2016-11-09',desc:'Robi vai dilo',type:'in',amount:5000,cat:'সাধারণ'},
+  {date:'2016-11-10',desc:'Shohel vai DHAKA biniyog babod dilo',type:'in',amount:500000,cat:'বিনিয়োগ'},
+  {date:'2016-11-10',desc:'Rakib dhar dilo',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2016-11-10',desc:'Delowar vai k dhar dilam',type:'out',amount:200000,cat:'সাধারণ'},
+  {date:'2016-11-15',desc:'Rakib dhar dilo',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2016-11-15',desc:'Chitto k bkash dilam',type:'out',amount:500,cat:'সাধারণ'},
+  {date:'2016-11-15',desc:'Sohel vai DHAKA dilo invest er',type:'in',amount:500000,cat:'বিনিয়োগ'},
+  {date:'2016-11-30',desc:'Rakib dilo brac pass diye',type:'in',amount:55000,cat:'সাধারণ'},
+  {date:'2016-11-30',desc:'s ma dilo',type:'in',amount:200000,cat:'সাধারণ'},
+  {date:'2016-11-30',desc:'chitto k patalam RICO k dite',type:'out',amount:200000,cat:'সাধারণ'},
+  {date:'2016-12-01',desc:'fish kinlam',type:'out',amount:570,cat:'খাবার'},
+  {date:'2016-12-07',desc:'Towfik dhar dilo',type:'in',amount:200000,cat:'সাধারণ'},
+  {date:'2016-12-08',desc:'Sona mosjid theke nilam',type:'in',amount:200000,cat:'সাধারণ'},
+  {date:'2016-12-08',desc:'Towfik k porishodh korlam',type:'out',amount:200000,cat:'সাধারণ'},
+  {date:'2016-12-11',desc:'chitto dilo standard bank a',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2016-12-11',desc:'Towfik k dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2016-12-13',desc:'Deloyar vai dilo dhar',type:'in',amount:25000,cat:'সাধারণ'},
+  {date:'2016-12-13',desc:'M Emon dilo dhar',type:'in',amount:25000,cat:'সাধারণ'},
+  {date:'2016-12-13',desc:'sunny mama dilo dhar',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2016-12-14',desc:'chitto patalo sona mosjid theke',type:'out',amount:105000,cat:'বিনিয়োগ'},
+  {date:'2016-12-15',desc:'Towfik dilo petam',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2016-12-15',desc:'Towfik dhar dilo',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2016-12-15',desc:'Rakib k dilam dhar',type:'out',amount:120000,cat:'সাধারণ'},
+  {date:'2016-12-15',desc:'Royel k dilam porishod',type:'out',amount:29500,cat:'সাধারণ'},
+  {date:'2017-01-02',desc:'brac theke tullam',type:'in',amount:600000,cat:'ব্যাংক'},
+  {date:'2017-01-02',desc:'standard a joma dilam',type:'out',amount:500000,cat:'ব্যাংক'},
+  {date:'2017-01-02',desc:'abba k dilam',type:'out',amount:100000,cat:'পরিবার'},
+  {date:'2017-01-02',desc:'deloyar vai dilo petam stnd b te',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2017-01-02',desc:'Towfik k dhar dilam',type:'out',amount:1000,cat:'সাধারণ'},
+  {date:'2017-01-03',desc:'sona theke cash dilo',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2017-01-03',desc:'Kamal k dilam sylhet',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2017-01-03',desc:'chitto patalo dbbl a',type:'out',amount:98000,cat:'ব্যাংক'},
+  {date:'2017-01-04',desc:'gym meem',type:'out',amount:500,cat:'সাধারণ'},
+  {date:'2017-01-04',desc:'lipy k dilam',type:'out',amount:1000,cat:'সাধারণ'},
+  {date:'2017-01-04',desc:'rakib k dilam',type:'out',amount:70000,cat:'সাধারণ'},
+  {date:'2017-01-05',desc:'towfik k ferot dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2017-01-07',desc:'kasshaf er admission fee',type:'out',amount:9500,cat:'শিক্ষা'},
+  {date:'2017-01-08',desc:'Bithy k dilam Bkash a',type:'out',amount:400,cat:'সাধারণ'},
+  {date:'2017-01-08',desc:'BDBI a joma dilam',type:'out',amount:10000,cat:'ব্যাংক'},
+  {date:'2017-01-08',desc:'BRAc a joma dilam',type:'out',amount:20000,cat:'ব্যাংক'},
+  {date:'2017-01-08',desc:'Deloyar vai k joma dilam',type:'out',amount:60000,cat:'সাধারণ'},
+  {date:'2017-01-15',desc:'sonali theke tullam',type:'in',amount:460000,cat:'ব্যাংক'},
+  {date:'2017-01-15',desc:'nice enterprise a joma dilam',type:'out',amount:484000,cat:'ব্যাংক'},
+  {date:'2017-01-16',desc:'standard theke tullam',type:'in',amount:30000,cat:'ব্যাংক'},
+  {date:'2017-01-16',desc:'ibbl a joma dilam',type:'out',amount:10000,cat:'ব্যাংক'},
+  {date:'2017-01-18',desc:'rda chairman joma dilam',type:'out',amount:11060,cat:'সরকারি/আইন'},
+  {date:'2017-01-18',desc:'rda dokan vara dilam',type:'out',amount:3916,cat:'সাধারণ'},
+  {date:'2017-01-18',desc:'gas er bill dilam',type:'out',amount:3900,cat:'সাধারণ'},
+  {date:'2017-01-21',desc:'sona theke nilam chittor acc a',type:'in',amount:200000,cat:'সাধারণ'},
+  {date:'2017-01-21',desc:'Rakib k dilam bike er restriction',type:'out',amount:51000,cat:'যাতায়াত'},
+  {date:'2017-01-22',desc:'rakib dilo dbb1 a',type:'in',amount:46000,cat:'সাধারণ'},
+  {date:'2017-01-23',desc:'royal K silam dhar',type:'in',amount:25000,cat:'সাধারণ'},
+  {date:'2017-01-23',desc:'Lipy K dilam',type:'out',amount:65000,cat:'সাধারণ'},
+  {date:'2017-01-24',desc:'lipy dilo',type:'in',amount:27000,cat:'সাধারণ'},
+  {date:'2017-01-25',desc:'chitto India te patalo',type:'out',amount:48600,cat:'সাধারণ'},
+  {date:'2017-01-26',desc:'Durjoy, Rico K dilam',type:'out',amount:241000,cat:'সাধারণ'},
+  {date:'2017-01-26',desc:'Brac a joma dilam kistry',type:'out',amount:57000,cat:'ব্যাংক'},
+  {date:'2017-01-31',desc:'lipy K dilam bkash a',type:'out',amount:4000,cat:'সাধারণ'},
+  {date:'2017-02-02',desc:'Truck er digital plate a dilo robi',type:'out',amount:10000,cat:'যাতায়াত'},
+  {date:'2017-02-02',desc:'pelam islami bank a sona theke',type:'in',amount:499811,cat:'ব্যাংক'},
+  {date:'2017-02-02',desc:'standard bank a joma dilam',type:'out',amount:515000,cat:'ব্যাংক'},
+  {date:'2017-02-04',desc:'riko K dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2017-02-10',desc:'kamal dilo',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2017-02-11',desc:'rupa dilo',type:'in',amount:10000,cat:'সাধারণ'},
+  {date:'2017-02-13',desc:'dbbl a sona theke dilo',type:'out',amount:110000,cat:'ব্যাংক'},
+  {date:'2017-02-13',desc:'rakib dilo dbbl a',type:'in',amount:69000,cat:'সাধারণ'},
+  {date:'2017-02-13',desc:'rakib K dilam',type:'out',amount:103000,cat:'সাধারণ'},
+  {date:'2017-02-15',desc:'standard a joma korlam',type:'out',amount:495000,cat:'ব্যাংক'},
+  {date:'2017-02-15',desc:'LC noc katlo standard bank',type:'out',amount:532000,cat:'ব্যাংক'},
+  {date:'2017-02-18',desc:'royel dilo sjibl a',type:'in',amount:10000,cat:'সাধারণ'},
+  {date:'2017-02-18',desc:'royel er credit card a joma dilam',type:'out',amount:40660,cat:'ব্যাংক'},
+  {date:'2017-02-18',desc:'brack te joma dilam',type:'out',amount:50200,cat:'ব্যাংক'},
+  {date:'2017-03-01',desc:'chitto dilo ibbl a dhakar babod',type:'out',amount:60000,cat:'ব্যাংক'},
+  {date:'2017-03-01',desc:'deloyar vai k dhar dilam',type:'out',amount:200000,cat:'সাধারণ'},
+  {date:'2017-03-05',desc:'deloyar vai dilo',type:'in',amount:150000,cat:'সাধারণ'},
+  {date:'2017-03-05',desc:'standard a joma dilm',type:'out',amount:150000,cat:'ব্যাংক'},
+  {date:'2017-03-23',desc:'Towfik vai dilo dhar',type:'in',amount:60000,cat:'সাধারণ'},
+  {date:'2017-03-23',desc:'sona theke truck a dilo',type:'out',amount:50000,cat:'বিনিয়োগ'},
+  {date:'2017-04-06',desc:'spectra theke aslo dbbl a',type:'in',amount:1207000,cat:'ব্যাংক'},
+  {date:'2017-04-06',desc:'standard a joma dilam',type:'out',amount:400000,cat:'ব্যাংক'},
+  {date:'2017-04-13',desc:'abutaher vai dilo',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2017-04-13',desc:'najmul er sonali account a dilam',type:'out',amount:100035,cat:'ব্যাংক'},
+  {date:'2017-05-07',desc:'deloyar vai k dhar dilam',type:'out',amount:200000,cat:'সাধারণ'},
+  {date:'2017-05-07',desc:'sona mosjid a dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2017-05-15',desc:'deloyar vai k dhar dilam',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2017-05-15',desc:'moni dilo dokan er',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2017-06-07',desc:'abutaher vai dilo pathorer',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2017-06-07',desc:'sona te dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2017-06-13',desc:'deloyar vai bkash dilo',type:'in',amount:5100,cat:'সাধারণ'},
+  {date:'2017-07-06',desc:'ronju norshingdi dhar dilo',type:'in',amount:300000,cat:'সাধারণ'},
+  {date:'2017-07-06',desc:'joma dilam 63 te',type:'out',amount:74000,cat:'ব্যাংক'},
+  {date:'2017-07-15',desc:'elish fish',type:'out',amount:8000,cat:'খাবার'},
+  {date:'2017-08-04',desc:'ronju dilo aam er',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2017-08-07',desc:'ronju cash dilo truck a',type:'in',amount:5000,cat:'সাধারণ'},
+  {date:'2017-08-07',desc:'sonali te dilo chitto stone',type:'out',amount:440000,cat:'বিনিয়োগ'},
+  {date:'2017-08-10',desc:'Roni dokan vara dilo',type:'in',amount:6000,cat:'সাধারণ'},
+  {date:'2017-08-10',desc:'rakib dhar dilo',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2017-08-10',desc:'pakhi vai dilo Stone er',type:'in',amount:60000,cat:'সাধারণ'},
+  {date:'2017-08-10',desc:'sunny er account a dilam',type:'out',amount:150000,cat:'সাধারণ'},
+  {date:'2017-09-05',desc:'najmul vai k dilam',type:'out',amount:350000,cat:'সাধারণ'},
+  {date:'2017-09-05',desc:'chitto patalo sona mosjid theke',type:'out',amount:105000,cat:'বিনিয়োগ'},
+  {date:'2017-09-05',desc:'royel k dilam porishod',type:'out',amount:29500,cat:'সাধারণ'},
+  {date:'2018-01-07',desc:'tuhin er kacie nilam dhar',type:'in',amount:6000,cat:'সাধারণ'},
+  {date:'2018-01-07',desc:'mistry k dilam tahsin',type:'out',amount:2000,cat:'সাধারণ'},
+  {date:'2018-01-08',desc:'sunny dilo',type:'in',amount:21500,cat:'সাধারণ'},
+  {date:'2018-01-08',desc:'Siam er kache dhar nilam',type:'in',amount:9000,cat:'সাধারণ'},
+  {date:'2018-01-08',desc:'Siam k back dilam',type:'out',amount:8000,cat:'সাধারণ'},
+  {date:'2018-01-10',desc:'chitto dilo standard bank a',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2018-01-10',desc:'Towfik K dilam',type:'out',amount:150000,cat:'সাধারণ'},
+  {date:'2018-01-11',desc:'Chitto patalo truck a',type:'out',amount:50000,cat:'বিনিয়োগ'},
+  {date:'2018-01-11',desc:'Pati truck K dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2018-01-12',desc:'Deloyar vai dilo dhar',type:'in',amount:25000,cat:'সাধারণ'},
+  {date:'2018-01-12',desc:'M Emon dilo dhar',type:'in',amount:25000,cat:'সাধারণ'},
+  {date:'2018-01-13',desc:'Deloyar k dilam porishodh',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2018-01-15',desc:'Towfik dilo petam',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2018-01-15',desc:'Rakib k dilam dhar',type:'out',amount:120000,cat:'সাধারণ'},
+  {date:'2018-01-17',desc:'chitto k dilam sona theke',type:'out',amount:200000,cat:'বিনিয়োগ'},
+  {date:'2018-01-17',desc:'sonali te dilo chitto stone',type:'out',amount:440000,cat:'বিনিয়োগ'},
+  {date:'2018-01-27',desc:'babul welding k dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2018-01-29',desc:'tingku dhar nilam',type:'in',amount:10000,cat:'সাধারণ'},
+  {date:'2018-01-29',desc:'maxwin apps',type:'out',amount:5500,cat:'সাধারণ'},
+  {date:'2018-01-29',desc:'sumon dilo restaurant a',type:'in',amount:164500,cat:'সাধারণ'},
+  {date:'2018-02-05',desc:'tin restaurant er',type:'out',amount:11600,cat:'সাধারণ'},
+  {date:'2018-02-05',desc:'meraj dilo stone er',type:'in',amount:90600,cat:'সাধারণ'},
+  {date:'2018-02-05',desc:'robi stone dilam pabo',type:'out',amount:86000,cat:'সাধারণ'},
+  {date:'2018-02-18',desc:'babul welding k dilam',type:'out',amount:5000,cat:'সাধারণ'},
+  {date:'2018-02-27',desc:'babul welding k dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2018-03-01',desc:'karmo sangsthan a savings joma diam',type:'out',amount:5000,cat:'ব্যাংক'},
+  {date:'2018-03-07',desc:'meem k dilam ferot',type:'out',amount:9000,cat:'সাধারণ'},
+  {date:'2018-03-07',desc:'delowar vai k dilam ferot',type:'out',amount:40000,cat:'সাধারণ'},
+  {date:'2018-03-07',desc:'karmosangsthan dilo loan',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2018-03-07',desc:'sohel vai dhaka k dilam ibbl theke',type:'out',amount:50000,cat:'ব্যাংক'},
+  {date:'2018-03-12',desc:'rumon k dilam bkash nagod',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2018-03-12',desc:'RDA Bablu k dilam',type:'out',amount:30000,cat:'সাধারণ'},
+  {date:'2018-03-12',desc:'bike 110cc dilam',type:'out',amount:10000,cat:'যাতায়াত'},
+  {date:'2018-03-12',desc:'rumon k dilam nkash nagod',type:'out',amount:35000,cat:'সাধারণ'},
+  {date:'2018-03-12',desc:'rumon dilo 5k pabo',type:'in',amount:90000,cat:'সাধারণ'},
+  {date:'2018-03-12',desc:'bike er dilam',type:'out',amount:110000,cat:'যাতায়াত'},
+  {date:'2018-03-13',desc:'IRC rony samoly er dilam',type:'out',amount:30000,cat:'সরকারি/আইন'},
+  {date:'2018-04-10',desc:'chitto k dilam',type:'out',amount:4000,cat:'সাধারণ'},
+  {date:'2018-05-07',desc:'delowar vai k dilam ferot',type:'out',amount:40000,cat:'সাধারণ'},
+  {date:'2018-05-09',desc:'rumon k bkash a dilam',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2018-05-09',desc:'rumon k nagod a dilam',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2018-05-09',desc:'rumon dilo cash',type:'in',amount:137000,cat:'সাধারণ'},
+  {date:'2018-05-09',desc:'shajalal bank cng te joma dilam',type:'out',amount:135000,cat:'ব্যাংক'},
+  {date:'2018-05-10',desc:'rumon dilo cash',type:'in',amount:80500,cat:'সাধারণ'},
+  {date:'2018-05-10',desc:'rumon k nagod a dilam',type:'out',amount:15000,cat:'সাধারণ'},
+  {date:'2018-05-11',desc:'rumon k dilam bkash a',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2018-05-11',desc:'rumon k dilam nagod a',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2018-05-11',desc:'rumon dilo cash',type:'in',amount:60000,cat:'সাধারণ'},
+  {date:'2018-05-13',desc:'sohel vai Dhaka k dilam',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2018-05-14',desc:'milon techno k dilam',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2018-05-14',desc:'sohel vai cnf k dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2018-05-14',desc:'anoar vai Dhaka dilo',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2018-06-02',desc:'rumon dilo',type:'in',amount:44000,cat:'সাধারণ'},
+  {date:'2018-06-02',desc:'standard a joma dilam',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2018-06-06',desc:'chitto k dilam',type:'out',amount:110000,cat:'সাধারণ'},
+  {date:'2018-06-22',desc:'masum vutu dilo dhar',type:'in',amount:10000,cat:'সাধারণ'},
+  {date:'2018-06-22',desc:'masum vutu dilo restaurant er',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2018-06-22',desc:'standard a card a joma dilam',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2018-07-07',desc:'masum vutu dilo dhar',type:'in',amount:10000,cat:'সাধারণ'},
+  {date:'2018-07-07',desc:'rony shyamoli k dilam',type:'out',amount:15000,cat:'সাধারণ'},
+  {date:'2018-07-07',desc:'rafa dilo cash',type:'in',amount:550000,cat:'সাধারণ'},
+  {date:'2018-07-07',desc:'Truck vara dilam Rafa stone er',type:'out',amount:79200,cat:'যাতায়াত'},
+  {date:'2018-07-10',desc:'masum k ferot dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2018-07-10',desc:'arman vai dilo',type:'in',amount:250000,cat:'সাধারণ'},
+  {date:'2018-07-10',desc:'atik vai k dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2018-08-07',desc:'munna rion k dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2018-08-07',desc:'sohubul k dilam',type:'out',amount:200000,cat:'সাধারণ'},
+  {date:'2018-08-07',desc:'home rent',type:'out',amount:7700,cat:'সাধারণ'},
+  {date:'2018-08-07',desc:'fzs 3 dilam johir k',type:'out',amount:45000,cat:'সাধারণ'},
+  {date:'2018-08-07',desc:'truck rent dilam rafa er stone',type:'out',amount:30000,cat:'যাতায়াত'},
+  {date:'2018-08-07',desc:'mamun noyapara stone er dilo ibbl a',type:'in',amount:1000000,cat:'স্টোন/ইট'},
+  {date:'2018-08-13',desc:'arman vai dilo',type:'in',amount:600000,cat:'সাধারণ'},
+  {date:'2018-08-19',desc:'arman vai dilo',type:'in',amount:300000,cat:'সাধারণ'},
+  {date:'2018-08-24',desc:'Ataur sir dilo investment',type:'in',amount:1300000,cat:'বিনিয়োগ'},
+  {date:'2018-08-25',desc:'arman sir k dilam ferot',type:'out',amount:300000,cat:'সাধারণ'},
+  {date:'2018-08-25',desc:'karmo bank k dilam',type:'out',amount:20000,cat:'ব্যাংক'},
+  {date:'2018-08-25',desc:'fountain international k back dilam',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2018-08-29',desc:'rda babul k dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2018-08-29',desc:'truck vara aftab nagor',type:'out',amount:76500,cat:'যাতায়াত'},
+  {date:'2018-08-30',desc:'sohubul k dilam bogura stone er',type:'out',amount:275000,cat:'স্টোন/ইট'},
+  {date:'2018-09-01',desc:'sofikul k truck vara card theke dilam',type:'out',amount:30000,cat:'যাতায়াত'},
+  {date:'2018-09-05',desc:'shohag dilo bali due arman side',type:'in',amount:92000,cat:'সাধারণ'},
+  {date:'2018-09-08',desc:'nadim k dilam Commission',type:'out',amount:9000,cat:'সাধারণ'},
+  {date:'2018-09-08',desc:'arman sir k dhar dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2018-09-08',desc:'jasim sohubul k dilam',type:'out',amount:66127,cat:'সাধারণ'},
+  {date:'2018-09-08',desc:'chitto k filam bogura stone er',type:'out',amount:145836,cat:'স্টোন/ইট'},
+  {date:'2018-09-09',desc:'nadim k dhar dilam',type:'out',amount:5010,cat:'সাধারণ'},
+  {date:'2018-09-09',desc:'royal k dilam due er',type:'out',amount:10010,cat:'সাধারণ'},
+  {date:'2018-09-10',desc:'milon techno k dilam due er',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2018-09-10',desc:'mamun noyapara k dilam',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2018-09-21',desc:'royal tk kete nilo shodh',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2018-09-24',desc:'sohubul k ibbl a dilam',type:'out',amount:150000,cat:'ব্যাংক'},
+  {date:'2019-01-10',desc:'chitto k dilam sona theke',type:'out',amount:200000,cat:'বিনিয়োগ'},
+  {date:'2019-01-12',desc:'sunny dilo stone er',type:'in',amount:100000,cat:'স্টোন/ইট'},
+  {date:'2019-01-12',desc:'chitto k dilam stone er',type:'out',amount:80000,cat:'স্টোন/ইট'},
+  {date:'2019-01-17',desc:'chitto k dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2019-01-19',desc:'ronju norshingdi dhar dilo',type:'in',amount:300000,cat:'সাধারণ'},
+  {date:'2019-01-19',desc:'joma dilam 63 te',type:'out',amount:74000,cat:'ব্যাংক'},
+  {date:'2019-02-05',desc:'kasshaf madrasa fee',type:'out',amount:4000,cat:'শিক্ষা'},
+  {date:'2019-02-05',desc:'advocate for ibbl opinion',type:'out',amount:3250,cat:'সরকারি/আইন'},
+  {date:'2019-02-07',desc:'sandel kasshaf wasfi',type:'out',amount:2100,cat:'শিক্ষা'},
+  {date:'2019-02-18',desc:'bujhan k dilam',type:'out',amount:5000,cat:'সাধারণ'},
+  {date:'2019-02-18',desc:'biton vai k dilam',type:'out',amount:3000,cat:'সাধারণ'},
+  {date:'2019-03-05',desc:'rakib dhar dilo',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2019-03-05',desc:'babu mama royal k dilam land er',type:'out',amount:60000,cat:'সাধারণ'},
+  {date:'2019-03-05',desc:'ritu k dilam land register er',type:'out',amount:27000,cat:'সরকারি/আইন'},
+  {date:'2019-04-01',desc:'jewel dilo pabo',type:'in',amount:9500,cat:'সাধারণ'},
+  {date:'2019-04-06',desc:'rofik stone dilo ibbl a',type:'in',amount:150000,cat:'স্টোন/ইট'},
+  {date:'2019-04-06',desc:'ataur sir standard k dilam intar',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2019-04-06',desc:'riad dilo kurbani',type:'in',amount:40000,cat:'সাধারণ'},
+  {date:'2019-04-06',desc:'korbanir cow',type:'out',amount:137700,cat:'সাধারণ'},
+  {date:'2019-04-06',desc:'milon techno k dilam',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2019-04-07',desc:'sohubul k dilam ibbl a',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2019-04-07',desc:'rumon k dilam bkash dhar',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2019-04-16',desc:'Rofik stone dilo DBBL a',type:'in',amount:48000,cat:'স্টোন/ইট'},
+  {date:'2019-04-16',desc:'asa k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2019-05-15',desc:'sona theke tullam',type:'in',amount:500000,cat:'ব্যাংক'},
+  {date:'2019-05-15',desc:'standard a joma dilam',type:'out',amount:500000,cat:'ব্যাংক'},
+  {date:'2019-05-15',desc:'sunny k dhar dilam',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2019-05-15',desc:'bablui vai k ferot dilam',type:'out',amount:150000,cat:'সাধারণ'},
+  {date:'2019-05-24',desc:'delowar k dhar dilam',type:'out',amount:40000,cat:'সাধারণ'},
+  {date:'2019-05-24',desc:'sona te dilam',type:'out',amount:45000,cat:'সাধারণ'},
+  {date:'2019-06-01',desc:'delowar vai k dhar dilam',type:'out',amount:150000,cat:'সাধারণ'},
+  {date:'2019-06-01',desc:'sona te dilam niha acc a',type:'out',amount:45000,cat:'সাধারণ'},
+  {date:'2019-06-10',desc:'abutaher vai dilo pathorer',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2019-06-10',desc:'sona te dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2019-07-01',desc:'sonali theke tullam head office',type:'in',amount:500000,cat:'ব্যাংক'},
+  {date:'2019-07-01',desc:'standard a joma dilam',type:'out',amount:500000,cat:'ব্যাংক'},
+  {date:'2020-01-13',desc:'mijan park a dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2020-01-20',desc:'biddut er kache dhar nilam',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2020-01-20',desc:'ebl credit card a joma dilam',type:'out',amount:15000,cat:'ব্যাংক'},
+  {date:'2020-01-22',desc:'Milon Techno dhar dilo',type:'in',amount:70000,cat:'সাধারণ'},
+  {date:'2020-01-22',desc:'sKs k dilam',type:'out',amount:49000,cat:'সাধারণ'},
+  {date:'2020-01-22',desc:'Pubali bank a dilam',type:'out',amount:34000,cat:'ব্যাংক'},
+  {date:'2020-01-23',desc:'Manik sona dilo L/C er',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2020-01-23',desc:'asa k dilam',type:'out',amount:102000,cat:'সাধারণ'},
+  {date:'2020-01-23',desc:'Biddut k dilam',type:'out',amount:18500,cat:'সাধারণ'},
+  {date:'2020-01-26',desc:'mintu 73 er taka dilo pubali te',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2020-01-28',desc:'manik dilo lc er',type:'in',amount:300000,cat:'ব্যাংক'},
+  {date:'2020-01-28',desc:'standard a joma dilam lc er',type:'out',amount:250000,cat:'ব্যাংক'},
+  {date:'2020-01-30',desc:'manik dilo lc er',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2020-02-09',desc:'manik dilo lc er',type:'in',amount:400000,cat:'ব্যাংক'},
+  {date:'2020-02-09',desc:'standard bank a lc te joma dilam',type:'out',amount:400000,cat:'ব্যাংক'},
+  {date:'2020-02-16',desc:'aumi k ferot dilam South bangla te',type:'out',amount:200000,cat:'সাধারণ'},
+  {date:'2020-02-20',desc:'pibali te joma dilam court a',type:'out',amount:35000,cat:'ব্যাংক'},
+  {date:'2020-02-20',desc:'islami te joma dilam cash',type:'out',amount:34000,cat:'ব্যাংক'},
+  {date:'2020-02-20',desc:'standard credit er check dilam islami te',type:'out',amount:170000,cat:'ব্যাংক'},
+  {date:'2020-02-20',desc:'delowar vai k dhar dilam',type:'out',amount:55000,cat:'সাধারণ'},
+  {date:'2020-02-24',desc:'sohubul k dilam',type:'out',amount:200000,cat:'সাধারণ'},
+  {date:'2020-03-05',desc:'shohag dilo fund a joma dite',type:'in',amount:535000,cat:'ব্যাংক'},
+  {date:'2020-03-08',desc:'ff er akram vai k dilam',type:'out',amount:615000,cat:'সাধারণ'},
+  {date:'2020-03-08',desc:'bullet k check dilam',type:'out',amount:49700,cat:'সাধারণ'},
+  {date:'2020-03-08',desc:'fund transfer dilam bullet k',type:'out',amount:6000000,cat:'বিনিয়োগ'},
+  {date:'2020-03-08',desc:'bullet k cash dilam',type:'out',amount:163000,cat:'সাধারণ'},
+  {date:'2020-03-15',desc:'manik k dilam uttora te',type:'out',amount:150000,cat:'সাধারণ'},
+  {date:'2020-04-25',desc:'manik dilo lc er standard a',type:'in',amount:600000,cat:'ব্যাংক'},
+  {date:'2020-05-04',desc:'standard a dilam lc korte manik er',type:'out',amount:600000,cat:'ব্যাংক'},
+  {date:'2020-06-13',desc:'sabbir kajihata dilo stone er',type:'in',amount:482000,cat:'স্টোন/ইট'},
+  {date:'2020-06-25',desc:'bulbul dilo 74 er',type:'in',amount:90000,cat:'সাধারণ'},
+  {date:'2020-06-25',desc:'pubali chapai te joma dilam',type:'out',amount:90000,cat:'ব্যাংক'},
+  {date:'2020-08-09',desc:'foisal dilo sjibl a stone er',type:'in',amount:100000,cat:'স্টোন/ইট'},
+  {date:'2020-08-10',desc:'foisal dilo stone er',type:'in',amount:100000,cat:'স্টোন/ইট'},
+  {date:'2020-08-10',desc:'najmul er sonali te dilam',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2020-08-13',desc:'foisal dilo stone er',type:'in',amount:150000,cat:'স্টোন/ইট'},
+  {date:'2020-08-16',desc:'najmul k dilam stone er',type:'out',amount:100000,cat:'স্টোন/ইট'},
+  {date:'2020-08-16',desc:'foisal dhaka dilo stone er',type:'in',amount:100000,cat:'স্টোন/ইট'},
+  {date:'2020-09-10',desc:'chitto k dilam sujon er mobile babod',type:'out',amount:12000,cat:'সাধারণ'},
+  {date:'2020-09-13',desc:'foisal dhaka dilo stone er',type:'in',amount:300000,cat:'স্টোন/ইট'},
+  {date:'2020-09-13',desc:'najmul k dilam ibbl a stone er',type:'out',amount:270000,cat:'স্টোন/ইট'},
+  {date:'2020-09-28',desc:'deloar nilam dhar',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2020-09-28',desc:'asa k dilam',type:'out',amount:24000,cat:'সাধারণ'},
+  {date:'2020-09-28',desc:'pubali court k dilam',type:'out',amount:32500,cat:'ব্যাংক'},
+  {date:'2020-10-12',desc:'deloyar vai ferot dilo',type:'in',amount:18000,cat:'সাধারণ'},
+  {date:'2020-10-12',desc:'foisal dilo ibbl a',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2020-10-12',desc:'najmul k dilam ibbl a',type:'out',amount:200000,cat:'ব্যাংক'},
+  {date:'2020-10-13',desc:'foisal dilo ibbl a',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2020-10-13',desc:'najmul k dilam ibbl A',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2020-10-15',desc:'dilo kormo bank',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2020-10-18',desc:'kormo dilo',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2020-10-18',desc:'dilam ebl card a',type:'out',amount:154000,cat:'ব্যাংক'},
+  {date:'2020-11-22',desc:'pilot vai k dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2020-11-22',desc:'manik dilo land registry korte',type:'in',amount:250000,cat:'সরকারি/আইন'},
+  {date:'2020-11-26',desc:'sujon trans port dilo stone er',type:'in',amount:120000,cat:'স্টোন/ইট'},
+  {date:'2020-11-29',desc:'jibon stone er dilo',type:'in',amount:73900,cat:'স্টোন/ইট'},
+  {date:'2020-12-09',desc:'manik k dilam retur hate',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2020-12-20',desc:'manik dilo dhar',type:'in',amount:150000,cat:'সাধারণ'},
+  {date:'2020-12-20',desc:'manik k ferot dilam',type:'out',amount:150000,cat:'সাধারণ'},
+  {date:'2020-12-22',desc:'chitto k dilam mobile er',type:'out',amount:30000,cat:'সাধারণ'},
+  {date:'2020-12-22',desc:'dr. Iskander dilo stone er',type:'in',amount:164800,cat:'স্টোন/ইট'},
+  {date:'2020-12-23',desc:'credit card standard a joma dilam',type:'out',amount:115000,cat:'ব্যাংক'},
+  {date:'2020-12-24',desc:'bulbul dilo pubali te 74 er',type:'in',amount:50000,cat:'ব্যাংক'},
+  {date:'2020-12-29',desc:'pibali chapai theke court a dilam',type:'out',amount:29500,cat:'ব্যাংক'},
+  {date:'2021-01-01',desc:'chitto k dilam truck vara unloading',type:'out',amount:5700,cat:'যাতায়াত'},
+  {date:'2021-01-03',desc:'nanking with nani',type:'out',amount:1700,cat:'খাবার'},
+  {date:'2021-01-03',desc:'dilo s ma',type:'in',amount:14000,cat:'সাধারণ'},
+  {date:'2021-01-04',desc:'foisal dilo ibbl a lc korte 2mt',type:'in',amount:250000,cat:'ব্যাংক'},
+  {date:'2021-01-05',desc:'stand a dilam lc korte',type:'out',amount:250000,cat:'ব্যাংক'},
+  {date:'2021-01-09',desc:'zamil dilo stone er',type:'in',amount:99715,cat:'স্টোন/ইট'},
+  {date:'2021-01-09',desc:'chitto k dilam stone er',type:'out',amount:98200,cat:'স্টোন/ইট'},
+  {date:'2021-01-17',desc:'s ma dilo shamima k',type:'in',amount:24000,cat:'সাধারণ'},
+  {date:'2021-01-18',desc:'raoson mama k dilam cimentber',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2021-01-22',desc:'tingku dilo bkash',type:'in',amount:5000,cat:'সাধারণ'},
+  {date:'2021-01-22',desc:'royal k bkash deya holo ferot',type:'out',amount:5000,cat:'সাধারণ'},
+  {date:'2021-01-27',desc:'bulbul dilo pubali te',type:'in',amount:50000,cat:'ব্যাংক'},
+  {date:'2021-01-28',desc:'from shohag',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2021-01-28',desc:'asa',type:'in',amount:30000,cat:'সাধারণ'},
+  {date:'2021-01-28',desc:'sk',type:'in',amount:30000,cat:'সাধারণ'},
+  {date:'2021-01-28',desc:'brac',type:'in',amount:20000,cat:'ব্যাংক'},
+  {date:'2021-01-31',desc:'jamil dilo stone er dbbl a',type:'in',amount:47500,cat:'স্টোন/ইট'},
+  {date:'2021-01-31',desc:'pubali te dbbl a dilam sumon k',type:'out',amount:33000,cat:'ব্যাংক'},
+  {date:'2021-02-02',desc:'shohag dilo ibbl a',type:'in',amount:40000,cat:'ব্যাংক'},
+  {date:'2021-02-02',desc:'chitto k dilam sona te jamil',type:'out',amount:42000,cat:'বিনিয়োগ'},
+  {date:'2021-02-09',desc:'foisal standard a dilo lc er',type:'in',amount:480000,cat:'ব্যাংক'},
+  {date:'2021-02-10',desc:'foisal dilo standard a lc er',type:'in',amount:20000,cat:'ব্যাংক'},
+  {date:'2021-02-16',desc:'sohel c&f k medichne',type:'out',amount:1900,cat:'সাধারণ'},
+  {date:'2021-02-17',desc:'sohel vai ferot dilo',type:'in',amount:1900,cat:'সাধারণ'},
+  {date:'2021-02-17',desc:'sunny dilo credit card a dite',type:'in',amount:5000,cat:'ব্যাংক'},
+  {date:'2021-02-17',desc:'ebl a joma dilam',type:'out',amount:13650,cat:'ব্যাংক'},
+  {date:'2021-02-20',desc:'pailot vai k dilam ferot',type:'out',amount:1000,cat:'সাধারণ'},
+  {date:'2021-02-23',desc:'pukurer pelam',type:'in',amount:21100,cat:'সাধারণ'},
+  {date:'2021-03-11',desc:'tingkur kache nilam',type:'in',amount:2000,cat:'সাধারণ'},
+  {date:'2021-03-11',desc:'s ma dilo electric er',type:'in',amount:7000,cat:'সাধারণ'},
+  {date:'2021-03-11',desc:'shahin mistry k dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2021-03-14',desc:'royal dilo pukur er',type:'in',amount:23200,cat:'সাধারণ'},
+  {date:'2021-03-14',desc:'cornel dhaka theke ibbl a',type:'in',amount:1000000,cat:'ব্যাংক'},
+  {date:'2021-03-18',desc:'cornel k dilam account a',type:'out',amount:900000,cat:'ব্যাংক'},
+  {date:'2021-03-25',desc:'brac a joma Dilam close',type:'out',amount:174000,cat:'ব্যাংক'},
+  {date:'2021-03-31',desc:'c raihan dilo dhar',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2021-03-31',desc:'sks k dilam sunny',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2021-03-31',desc:'asa k dilam sunny',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2021-03-31',desc:'madon saha dilo stone er',type:'in',amount:102605,cat:'স্টোন/ইট'},
+  {date:'2021-03-31',desc:'chitto k stone er dilam',type:'out',amount:100000,cat:'স্টোন/ইট'},
+  {date:'2021-04-13',desc:'aminul vai dilo ibbl a jashor',type:'in',amount:499800,cat:'ব্যাংক'},
+  {date:'2021-04-13',desc:'manik k dilam stone er',type:'out',amount:350000,cat:'স্টোন/ইট'},
+  {date:'2021-04-13',desc:'himel dilo stone er',type:'in',amount:91200,cat:'স্টোন/ইট'},
+  {date:'2021-04-13',desc:'madon dilo stone er',type:'in',amount:33100,cat:'স্টোন/ইট'},
+  {date:'2021-04-13',desc:'raseI md.pur dilo stone er',type:'in',amount:53990,cat:'স্টোন/ইট'},
+  {date:'2021-04-13',desc:'chitto k dilam stone er',type:'out',amount:170000,cat:'স্টোন/ইট'},
+  {date:'2021-04-15',desc:'ebl card a joma dilam',type:'out',amount:153000,cat:'ব্যাংক'},
+  {date:'2021-04-18',desc:'zamil dhaka dilo',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2021-04-18',desc:'mijan dhaka dilo',type:'in',amount:1270000,cat:'সাধারণ'},
+  {date:'2021-04-18',desc:'aminul vai dilo ibbl a',type:'in',amount:499800,cat:'ব্যাংক'},
+  {date:'2021-04-18',desc:'mijan dhaka dilo ibbl a',type:'in',amount:127000,cat:'ব্যাংক'},
+  {date:'2021-04-18',desc:'raseI dhaka dilo ibbl a',type:'in',amount:50000,cat:'ব্যাংক'},
+  {date:'2021-04-18',desc:'zamil dhaka dilo ibbl a',type:'in',amount:55000,cat:'ব্যাংক'},
+  {date:'2021-04-18',desc:'chitto k dilam stone er',type:'out',amount:660000,cat:'স্টোন/ইট'},
+  {date:'2021-04-20',desc:'chitto k dilam ibbl a',type:'out',amount:290000,cat:'ব্যাংক'},
+  {date:'2021-04-20',desc:'aminul vai dilo ibbl a',type:'in',amount:299860,cat:'ব্যাংক'},
+  {date:'2021-04-22',desc:'foisal dilo lc er',type:'in',amount:450000,cat:'ব্যাংক'},
+  {date:'2021-04-22',desc:'aminul vai jassore dilo ibbl a',type:'in',amount:199860,cat:'ব্যাংক'},
+  {date:'2021-04-22',desc:'chitto k dilam sona te',type:'out',amount:170000,cat:'বিনিয়োগ'},
+  {date:'2021-04-22',desc:'noc nilam ibbl theke',type:'out',amount:500000,cat:'ব্যাংক'},
+  {date:'2021-04-29',desc:'aminul vai jassor dilo ibbl a',type:'in',amount:37700,cat:'ব্যাংক'},
+  {date:'2021-04-29',desc:'bulbul vai dilo 74 er',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2021-04-29',desc:'chitto k dilam pubali te',type:'out',amount:35000,cat:'ব্যাংক'},
+  {date:'2021-04-29',desc:'court pubali te dilam',type:'out',amount:30500,cat:'ব্যাংক'},
+  {date:'2021-05-01',desc:'royal dilo carret er',type:'in',amount:16000,cat:'সাধারণ'},
+  {date:'2021-05-02',desc:'royel dilo carret er',type:'in',amount:12000,cat:'সাধারণ'},
+  {date:'2021-05-03',desc:'najmul k dilam carret er',type:'out',amount:35994,cat:'সাধারণ'},
+  {date:'2021-05-04',desc:'shahin mistry k dilam ma er hate',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2021-06-13',desc:'pilot vai k ferot dilam',type:'out',amount:2500,cat:'সাধারণ'},
+  {date:'2021-06-13',desc:'hares mama k dilam',type:'out',amount:3800,cat:'সাধারণ'},
+  {date:'2021-06-22',desc:'dhan er kaium dilo',type:'in',amount:23830,cat:'সাধারণ'},
+  {date:'2021-06-22',desc:'chitto k dilam',type:'out',amount:130000,cat:'সাধারণ'},
+  {date:'2021-06-22',desc:'mijan uttara dilo',type:'in',amount:54171,cat:'সাধারণ'},
+  {date:'2021-06-22',desc:'santunu da dilo',type:'in',amount:101348,cat:'সাধারণ'},
+  {date:'2021-06-24',desc:'standard card a joma dilam',type:'out',amount:313500,cat:'ব্যাংক'},
+  {date:'2021-06-25',desc:'chitto k dilam stone er',type:'out',amount:82000,cat:'স্টোন/ইট'},
+  {date:'2021-06-27',desc:'biton vai dilo investment',type:'in',amount:500000,cat:'বিনিয়োগ'},
+  {date:'2021-06-27',desc:'chitto k stone dilam btn',type:'out',amount:300000,cat:'স্টোন/ইট'},
+  {date:'2021-06-30',desc:'standard a lc korte',type:'out',amount:140000,cat:'ব্যাংক'},
+  {date:'2021-06-30',desc:'pubali court a joma dilam',type:'out',amount:31300,cat:'ব্যাংক'},
+  {date:'2021-07-07',desc:'santunu da k commission',type:'out',amount:10900,cat:'সাধারণ'},
+  {date:'2021-07-07',desc:'chitto k jomuna te dilam mobile er',type:'out',amount:21500,cat:'সাধারণ'},
+  {date:'2021-07-18',desc:'cow',type:'out',amount:89000,cat:'সাধারণ'},
+  {date:'2021-07-18',desc:'shohag dilo cow er',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2021-07-19',desc:'c raihan ma k dilam ferot',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2021-07-26',desc:'milon techno k dilam ebl a',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2021-07-30',desc:'babu chapal dilo dhaner',type:'in',amount:20600,cat:'সাধারণ'},
+  {date:'2021-07-30',desc:'pubali court k dilam',type:'out',amount:33000,cat:'ব্যাংক'},
+  {date:'2021-08-02',desc:'mijan uttara dilo',type:'in',amount:75800,cat:'সাধারণ'},
+  {date:'2021-08-02',desc:'chitto k dilam mijan stone er',type:'out',amount:54500,cat:'স্টোন/ইট'},
+  {date:'2021-08-03',desc:'standard card a joma dilam',type:'out',amount:276000,cat:'ব্যাংক'},
+  {date:'2021-08-03',desc:'ebl card a joma dilam',type:'out',amount:148100,cat:'ব্যাংক'},
+  {date:'2021-08-03',desc:'ibbl theke withdraw',type:'in',amount:450000,cat:'ব্যাংক'},
+  {date:'2021-08-03',desc:'chitto k dilam kola para stone er',type:'out',amount:94150,cat:'স্টোন/ইট'},
+  {date:'2021-08-04',desc:'sunny dilo pose er',type:'in',amount:256100,cat:'সাধারণ'},
+  {date:'2021-08-05',desc:'aminul haji dilo ibbl a',type:'in',amount:120000,cat:'ব্যাংক'},
+  {date:'2021-08-05',desc:'chitto k dilam kolapara truck vara',type:'out',amount:23100,cat:'যাতায়াত'},
+  {date:'2021-08-09',desc:'trade licence',type:'out',amount:7000,cat:'সরকারি/আইন'},
+  {date:'2021-08-09',desc:'sunny k pose a dilam car royal',type:'out',amount:15000,cat:'সাধারণ'},
+  {date:'2021-08-09',desc:'sunny k pose a dilam car',type:'out',amount:126000,cat:'সাধারণ'},
+  {date:'2021-08-09',desc:'sunny k ibbl to brac a dilam car',type:'out',amount:350000,cat:'সাধারণ'},
+  {date:'2021-08-09',desc:'sunny k standard card a dilam car',type:'out',amount:67700,cat:'ব্যাংক'},
+  {date:'2021-08-20',desc:'sunny dilo stone er',type:'in',amount:100000,cat:'স্টোন/ইট'},
+  {date:'2021-08-20',desc:'chitto k dilam stone er',type:'out',amount:80000,cat:'স্টোন/ইট'},
+  {date:'2021-08-22',desc:'himel sabbir dilo stone er',type:'in',amount:77200,cat:'স্টোন/ইট'},
+  {date:'2021-08-23',desc:'modhoparai dilam liton k',type:'out',amount:145000,cat:'সাধারণ'},
+  {date:'2021-08-24',desc:'sunny k ferot dilam',type:'out',amount:40000,cat:'সাধারণ'},
+  {date:'2021-08-31',desc:'sunny dhar nilam',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2021-09-01',desc:'sunny kache dhar nilam',type:'in',amount:70000,cat:'সাধারণ'},
+  {date:'2021-09-01',desc:'chitto k sona te dilam',type:'out',amount:70000,cat:'বিনিয়োগ'},
+  {date:'2021-09-02',desc:'sunny k ferot dilam',type:'out',amount:70000,cat:'সাধারণ'},
+  {date:'2021-09-02',desc:'esl dilo ibbl a',type:'in',amount:84921,cat:'ব্যাংক'},
+  {date:'2021-09-05',desc:'royal dilo stone er',type:'in',amount:250000,cat:'স্টোন/ইট'},
+  {date:'2021-09-05',desc:'chitto k dilam',type:'out',amount:300000,cat:'সাধারণ'},
+  {date:'2021-09-05',desc:'esl dilo ibbl a',type:'in',amount:90039,cat:'ব্যাংক'},
+  {date:'2021-09-06',desc:'royal dilo stone er',type:'in',amount:300000,cat:'স্টোন/ইট'},
+  {date:'2021-09-06',desc:'enamul bosundhora dilo ibbl a',type:'in',amount:53971,cat:'ব্যাংক'},
+  {date:'2021-09-07',desc:'sunny dilo standard card a ferot',type:'in',amount:15000,cat:'ব্যাংক'},
+  {date:'2021-09-07',desc:'sonet k dhar dilam',type:'out',amount:53200,cat:'সাধারণ'},
+  {date:'2021-09-08',desc:'esl dilo ibbl a',type:'in',amount:169000,cat:'ব্যাংক'},
+  {date:'2021-09-15',desc:'chitto k dilam',type:'out',amount:170000,cat:'সাধারণ'},
+  {date:'2021-09-15',desc:'shohag k dilam dhar sjibl cng theke',type:'out',amount:112000,cat:'সাধারণ'},
+  {date:'2021-09-15',desc:'foisal dilo lc noc er',type:'in',amount:500000,cat:'ব্যাংক'},
+  {date:'2021-09-15',desc:'madon saha k.mal dilam',type:'out',amount:55580,cat:'সাধারণ'},
+  {date:'2021-09-15',desc:'sjibl a dilam cng te lc er',type:'out',amount:200000,cat:'ব্যাংক'},
+  {date:'2021-09-16',desc:'zamal sona mal nilam due',type:'out',amount:52404,cat:'সাধারণ'},
+  {date:'2021-09-19',desc:'chitto k dilam esl er',type:'out',amount:155000,cat:'সাধারণ'},
+  {date:'2021-09-19',desc:'sjibl cng theke withdraw',type:'in',amount:107000,cat:'ব্যাংক'},
+  {date:'2021-09-20',desc:'sunny dilo dhar card er',type:'in',amount:264000,cat:'সাধারণ'},
+  {date:'2021-09-20',desc:'sunny k ferot dilam card theke',type:'out',amount:264000,cat:'সাধারণ'},
+  {date:'2021-09-20',desc:'chitto k dilam truck vere esl er',type:'out',amount:19550,cat:'যাতায়াত'},
+  {date:'2021-09-20',desc:'zamal vai k dilam Ibbl theke',type:'out',amount:50000,cat:'ব্যাংক'},
+  {date:'2021-09-20',desc:'zamal er chitto k dilam ibbl a',type:'out',amount:34400,cat:'ব্যাংক'},
+  {date:'2021-09-21',desc:'shohag ferot dilo sjibl a',type:'in',amount:162000,cat:'ব্যাংক'},
+  {date:'2021-09-21',desc:'asa k dilam',type:'out',amount:30000,cat:'সাধারণ'},
+  {date:'2021-09-22',desc:'foisal dilo dhar',type:'in',amount:300000,cat:'সাধারণ'},
+  {date:'2021-09-22',desc:'rda babl u dilo dhar',type:'in',amount:300000,cat:'সাধারণ'},
+  {date:'2021-09-22',desc:'ibbl theke uttolon',type:'in',amount:150000,cat:'ব্যাংক'},
+  {date:'2021-09-22',desc:'sjibl theke uttolon',type:'in',amount:230000,cat:'ব্যাংক'},
+  {date:'2021-09-22',desc:'standard te joma dilam',type:'out',amount:980000,cat:'ব্যাংক'},
+  {date:'2021-09-23',desc:'foisal dilo standard a',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2021-09-23',desc:'sunny dilo ibbl a',type:'in',amount:250000,cat:'ব্যাংক'},
+  {date:'2021-09-23',desc:'standard a dilam',type:'out',amount:300000,cat:'ব্যাংক'},
+  {date:'2021-09-23',desc:'mijan uttara dilo stone er',type:'in',amount:75963,cat:'স্টোন/ইট'},
+  {date:'2021-09-24',desc:'yasin mohori for dolli withdraw',type:'out',amount:1500,cat:'সরকারি/আইন'},
+  {date:'2021-09-25',desc:'chitto k dilam esl er mal babod',type:'out',amount:55000,cat:'সাধারণ'},
+  {date:'2021-09-28',desc:'sjibl mngr dilo dhar',type:'in',amount:500000,cat:'ব্যাংক'},
+  {date:'2021-09-28',desc:'standard a joma dilam',type:'out',amount:655000,cat:'ব্যাংক'},
+  {date:'2021-09-29',desc:'foisal vai dilo lc er',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2021-10-04',desc:'sunny k dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2021-10-04',desc:'chitto k dilam',type:'out',amount:280000,cat:'সাধারণ'},
+  {date:'2021-10-04',desc:'standard card a joma dilam',type:'out',amount:50000,cat:'ব্যাংক'},
+  {date:'2021-10-07',desc:'disbursement sjibl theke',type:'in',amount:500000,cat:'ব্যাংক'},
+  {date:'2021-10-07',desc:'ebl credit card bill pay',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2021-10-07',desc:'ibbl a joma',type:'out',amount:400000,cat:'ব্যাংক'},
+  {date:'2021-10-07',desc:'chitto k sona te dilam',type:'out',amount:200000,cat:'বিনিয়োগ'},
+  {date:'2021-10-11',desc:'chitto k dilam bonus',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2021-10-12',desc:'sunny k dilam',type:'out',amount:70000,cat:'সাধারণ'},
+  {date:'2021-10-12',desc:'set babul vai k dilam',type:'out',amount:40120,cat:'সাধারণ'},
+  {date:'2021-10-24',desc:'bablui vai k ferot dilam',type:'out',amount:150000,cat:'সাধারণ'},
+  {date:'2021-10-24',desc:'chitto k dilam stone er',type:'out',amount:168000,cat:'স্টোন/ইট'},
+  {date:'2021-10-24',desc:'royal dilo dhar for LC',type:'in',amount:250000,cat:'ব্যাংক'},
+  {date:'2021-10-24',desc:'ESL dilo bill',type:'in',amount:277047,cat:'সাধারণ'},
+  {date:'2021-11-01',desc:'foisal vai dhaka dilo',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2021-11-01',desc:'pubali court k dilam',type:'out',amount:35000,cat:'ব্যাংক'},
+  {date:'2021-11-03',desc:'Esl bill dilo',type:'in',amount:191892,cat:'সাধারণ'},
+  {date:'2021-11-04',desc:'chitto k dilam esl er freight',type:'out',amount:21290,cat:'সাধারণ'},
+  {date:'2021-11-04',desc:'manik sjibl a dilo wheat er lc korte',type:'in',amount:400000,cat:'ব্যাংক'},
+  {date:'2021-11-04',desc:'manik k ferot dilam sjibl a lc te',type:'out',amount:169000,cat:'ব্যাংক'},
+  {date:'2021-11-04',desc:'manik k dilam sjibl a lc te',type:'out',amount:71000,cat:'ব্যাংক'},
+  {date:'2021-11-11',desc:'manic dilo lc wheat er',type:'in',amount:250000,cat:'ব্যাংক'},
+  {date:'2021-11-11',desc:'chitto k dilam stone er',type:'out',amount:150000,cat:'স্টোন/ইট'},
+  {date:'2021-11-11',desc:'chitto k dtone er',type:'out',amount:100000,cat:'স্টোন/ইট'},
+  {date:'2021-11-16',desc:'pubali te truck cng',type:'out',amount:38000,cat:'যাতায়াত'},
+  {date:'2021-11-16',desc:'sohubul dilo lc Korte chitto k',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2021-11-16',desc:'stone er chitto k na diye sjibl a dilam',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2021-11-21',desc:'manik dilo wheat er',type:'in',amount:420000,cat:'ব্যাংক'},
+  {date:'2021-11-21',desc:'dilam sona te chitto k',type:'out',amount:120000,cat:'বিনিয়োগ'},
+  {date:'2021-11-21',desc:'credit card a joma dilam EBL er',type:'out',amount:148900,cat:'ব্যাংক'},
+  {date:'2021-11-21',desc:'jamal vai k dilam sona te',type:'out',amount:151200,cat:'সাধারণ'},
+  {date:'2021-11-22',desc:'abutaher vai dilo, shodh',type:'in',amount:77700,cat:'সাধারণ'},
+  {date:'2021-11-22',desc:'rda vara dilo pourler',type:'in',amount:10000,cat:'সাধারণ'},
+  {date:'2021-11-22',desc:'chitto k dilam sona te',type:'out',amount:85000,cat:'বিনিয়োগ'},
+  {date:'2021-11-23',desc:'esl bill dilo',type:'in',amount:195613,cat:'সাধারণ'},
+  {date:'2021-11-24',desc:'babu shohag k dilam truck',type:'out',amount:9500,cat:'যাতায়াত'},
+  {date:'2021-11-24',desc:'dilam chitto k abutaher stone',type:'out',amount:230000,cat:'স্টোন/ইট'},
+  {date:'2021-11-25',desc:'abu taher vai dilo ibbl a',type:'in',amount:400000,cat:'ব্যাংক'},
+  {date:'2021-11-25',desc:'ESL dilo ibbl a',type:'in',amount:199885,cat:'ব্যাংক'},
+  {date:'2021-11-25',desc:'chitto k dilam',type:'out',amount:500000,cat:'সাধারণ'},
+  {date:'2021-11-28',desc:'chitto k dilam IBBL a',type:'out',amount:150000,cat:'ব্যাংক'},
+  {date:'2021-11-28',desc:'Foisal dilo LC er',type:'in',amount:300000,cat:'ব্যাংক'},
+  {date:'2021-11-29',desc:'ESL bill dilo',type:'in',amount:415631,cat:'সাধারণ'},
+  {date:'2021-11-29',desc:'Chitto k dilam',type:'out',amount:150000,cat:'সাধারণ'},
+  {date:'2021-11-29',desc:'SJIBL cng k dilam',type:'out',amount:266000,cat:'ব্যাংক'},
+  {date:'2021-11-29',desc:'Jamal vai k dilam Enamul er stone',type:'out',amount:110000,cat:'স্টোন/ইট'},
+  {date:'2021-12-02',desc:'foisal dhaka dilo sjibl a',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2021-12-02',desc:'chitto k dilam',type:'out',amount:55900,cat:'সাধারণ'},
+  {date:'2021-12-02',desc:'pubali court a dilam',type:'out',amount:33000,cat:'ব্যাংক'},
+  {date:'2021-12-05',desc:'enamul dhaka dilo ibbl a',type:'in',amount:222890,cat:'ব্যাংক'},
+  {date:'2021-12-05',desc:'abu taher vai dilo ibbl a',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2021-12-05',desc:'chitto k dilam ESL er',type:'out',amount:250000,cat:'সাধারণ'},
+  {date:'2021-12-06',desc:'foisal dilo sjibl a',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2021-12-06',desc:'chitto k dilam ibbl a',type:'out',amount:150000,cat:'ব্যাংক'},
+  {date:'2021-12-09',desc:'tutul bulonpur stone er nilam',type:'out',amount:69900,cat:'স্টোন/ইট'},
+  {date:'2021-12-09',desc:'sohubul dilo stone',type:'in',amount:68400,cat:'স্টোন/ইট'},
+  {date:'2021-12-09',desc:'sjibl a joma dilam Ic er',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2021-12-09',desc:'joma dilam standard card a',type:'out',amount:20200,cat:'ব্যাংক'},
+  {date:'2021-12-09',desc:'ESL Bill dilo',type:'in',amount:406634,cat:'সাধারণ'},
+  {date:'2021-12-09',desc:'SJIBL a joma dilam',type:'out',amount:85000,cat:'ব্যাংক'},
+  {date:'2021-12-11',desc:'chitto k dilam ESL er stone er',type:'out',amount:156300,cat:'স্টোন/ইট'},
+  {date:'2021-12-12',desc:'Chitto k dilam ESL er Stone er',type:'out',amount:160000,cat:'স্টোন/ইট'},
+  {date:'2021-12-14',desc:'ESL bill dilo',type:'in',amount:393747,cat:'সাধারণ'},
+  {date:'2021-12-15',desc:'Foisal Dhaka dilo IBBL a',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2021-12-15',desc:'Chitto k dilam IBBL a',type:'out',amount:60000,cat:'ব্যাংক'},
+  {date:'2021-12-19',desc:'chitto k enamul er stone babod',type:'out',amount:51900,cat:'স্টোন/ইট'},
+  {date:'2021-12-19',desc:'ebl card a joma dilam',type:'out',amount:75960,cat:'ব্যাংক'},
+  {date:'2021-12-20',desc:'monxur dilo aam er',type:'in',amount:35380,cat:'সাধারণ'},
+  {date:'2021-12-22',desc:'sohubul vai dilo chitto k cash',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2021-12-23',desc:'MiloN techno k dilam EBL a',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2021-12-23',desc:'Foisal dhaka dilo IBBL a',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2021-12-25',desc:'wasfi school admission',type:'out',amount:3000,cat:'শিক্ষা'},
+  {date:'2021-12-27',desc:'rumon mudikhana k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2021-12-27',desc:'chitto k dilam',type:'out',amount:125000,cat:'সাধারণ'},
+  {date:'2021-12-28',desc:'enamul chapal dilo dhan er',type:'in',amount:45560,cat:'সাধারণ'},
+  {date:'2021-12-30',desc:'sohubul vai dilo chitto k',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2021-12-30',desc:'enamul bosundhora dilo ibbl a',type:'in',amount:106000,cat:'ব্যাংক'},
+  {date:'2021-12-30',desc:'pubali cng te dilam',type:'out',amount:142500,cat:'ব্যাংক'},
+  {date:'2021-12-30',desc:'foisal dhaka filo ibbl a',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2021-12-30',desc:'pubali court k dilam',type:'out',amount:32500,cat:'ব্যাংক'},
+  {date:'2022-01-03',desc:'gift kajol mama botle car',type:'out',amount:1200,cat:'সাধারণ'},
+  {date:'2022-01-03',desc:'sohubul vai dilo',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2022-01-03',desc:'chitto k dilam ibbl a',type:'out',amount:200000,cat:'ব্যাংক'},
+  {date:'2022-01-04',desc:'Abu taher vai dilo IBBL a',type:'in',amount:150000,cat:'ব্যাংক'},
+  {date:'2022-01-04',desc:'Chitto k dilam IBBL A',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2022-01-06',desc:'chitto k dilam',type:'out',amount:55400,cat:'সাধারণ'},
+  {date:'2022-01-06',desc:'enamul dhaka dilo',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2022-01-09',desc:'ESL dilo bill',type:'in',amount:308727,cat:'সাধারণ'},
+  {date:'2022-01-10',desc:'chitto k dilam ibbl a',type:'out',amount:175000,cat:'ব্যাংক'},
+  {date:'2022-01-11',desc:'abu taher vai cash dilo',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2022-01-16',desc:'aju vai k dilam city',type:'out',amount:82000,cat:'সাধারণ'},
+  {date:'2022-01-16',desc:'aju vai k dilam ibbl',type:'out',amount:60000,cat:'ব্যাংক'},
+  {date:'2022-01-16',desc:'chitto k dilam',type:'out',amount:184000,cat:'সাধারণ'},
+  {date:'2022-01-17',desc:'chitto k dilam',type:'out',amount:140000,cat:'সাধারণ'},
+  {date:'2022-01-17',desc:'Abutaher Vai dilo cash',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2022-01-18',desc:'robi court dilo',type:'in',amount:200000,cat:'সাধারণ'},
+  {date:'2022-01-18',desc:'chitto k dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2022-01-18',desc:'jamal vai k dilam',type:'out',amount:196832,cat:'সাধারণ'},
+  {date:'2022-01-19',desc:'robi court dilo stone er',type:'in',amount:50000,cat:'স্টোন/ইট'},
+  {date:'2022-01-19',desc:'asa k dilam',type:'out',amount:30000,cat:'সাধারণ'},
+  {date:'2022-01-20',desc:'biton vai k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-01-20',desc:'masum shuvo dilo medicine er',type:'in',amount:35500,cat:'সাধারণ'},
+  {date:'2022-01-20',desc:'chitto k dilam ibbl a',type:'out',amount:34950,cat:'ব্যাংক'},
+  {date:'2022-01-20',desc:'sohubul vai dilo sjibl a LC te',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2022-01-22',desc:'royal k dilam bkash',type:'out',amount:500,cat:'সাধারণ'},
+  {date:'2022-01-23',desc:'jamal vai k dilam city air ticket',type:'out',amount:13200,cat:'যাতায়াত'},
+  {date:'2022-01-23',desc:'Jamal Vai k dilam Publai te',type:'out',amount:40900,cat:'ব্যাংক'},
+  {date:'2022-01-23',desc:'Chitto k dilam',type:'out',amount:60000,cat:'সাধারণ'},
+  {date:'2022-01-23',desc:'Foisal dilo Sjibl a',type:'in',amount:500000,cat:'ব্যাংক'},
+  {date:'2022-01-23',desc:'dilam Sjibl CnG te',type:'out',amount:150050,cat:'ব্যাংক'},
+  {date:'2022-01-24',desc:'MiloN techno k dilam EBL a',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2022-01-25',desc:'Chitto k dilam anamul er stone er',type:'out',amount:60000,cat:'স্টোন/ইট'},
+  {date:'2022-01-25',desc:'Deloyar Vai k dilam dhar',type:'out',amount:65000,cat:'সাধারণ'},
+  {date:'2022-01-27',desc:'chitto k dilam cash jomuna te dite',type:'out',amount:40000,cat:'সাধারণ'},
+  {date:'2022-01-27',desc:'deloyar vai ferot dilo',type:'in',amount:65000,cat:'সাধারণ'},
+  {date:'2022-01-27',desc:'manik sona dilo city te',type:'in',amount:40000,cat:'সাধারণ'},
+  {date:'2022-01-30',desc:'Chitto k dilam truck rent',type:'out',amount:22100,cat:'যাতায়াত'},
+  {date:'2022-01-30',desc:'Enamul Bosundhara dilo IBBL a',type:'in',amount:61155,cat:'ব্যাংক'},
+  {date:'2022-01-30',desc:'ESL dilo IBBL a last total payments',type:'in',amount:220754,cat:'ব্যাংক'},
+  {date:'2022-02-06',desc:'riad k dilam',type:'out',amount:7000,cat:'সাধারণ'},
+  {date:'2022-02-06',desc:'Deloyar Vai er Kache dhar Nilam',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2022-02-06',desc:'karmosansthan k paid korlam',type:'out',amount:207000,cat:'ব্যাংক'},
+  {date:'2022-02-06',desc:'Foisal dhaka dilo IBBL a',type:'in',amount:500000,cat:'ব্যাংক'},
+  {date:'2022-02-06',desc:'Sjibl CnG te dilam LC payment',type:'out',amount:504000,cat:'ব্যাংক'},
+  {date:'2022-02-07',desc:'s ma dilo land register',type:'in',amount:40000,cat:'সরকারি/আইন'},
+  {date:'2022-02-07',desc:'delowar vai k ferot dilam',type:'out',amount:100000,cat:'সাধারণ'},
+  {date:'2022-02-07',desc:'Rumon k bKash nagod a dilam',type:'out',amount:40000,cat:'সাধারণ'},
+  {date:'2022-02-08',desc:'land price',type:'out',amount:1060000,cat:'সাধারণ'},
+  {date:'2022-02-08',desc:'dilam land price',type:'out',amount:1069000,cat:'সাধারণ'},
+  {date:'2022-02-10',desc:'Karmo bank a dilam',type:'out',amount:4500,cat:'ব্যাংক'},
+  {date:'2022-02-10',desc:'karmo bank dilo',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2022-02-13',desc:'truck sold 14-4471',type:'in',amount:500000,cat:'যাতায়াত'},
+  {date:'2022-02-14',desc:'sjibl a dilam lc rac',type:'out',amount:345000,cat:'ব্যাংক'},
+  {date:'2022-02-14',desc:'Chitto k IBBL a dilam stone er',type:'out',amount:147500,cat:'স্টোন/ইট'},
+  {date:'2022-02-16',desc:'enamul dilo ibbl a',type:'in',amount:153000,cat:'ব্যাংক'},
+  {date:'2022-02-16',desc:'chitto k dilam jhalkati bill',type:'out',amount:110000,cat:'সাধারণ'},
+  {date:'2022-02-16',desc:'sohubul dilo',type:'in',amount:300000,cat:'সাধারণ'},
+  {date:'2022-02-17',desc:'SantunU da k dilam commission ESL er',type:'out',amount:8000,cat:'সাধারণ'},
+  {date:'2022-02-17',desc:'Sjibl a dilam adjustment a',type:'out',amount:350000,cat:'ব্যাংক'},
+  {date:'2022-02-17',desc:'Sohubul Vai dilo LC er',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2022-02-17',desc:'Sjibl a dilam adjustment a',type:'out',amount:100000,cat:'ব্যাংক'},
+  {date:'2022-02-17',desc:'chitto k ibbl a dilam',type:'out',amount:74500,cat:'ব্যাংক'},
+  {date:'2022-02-20',desc:'abu taher vai cash dilo',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2022-02-22',desc:'internet bill dilam',type:'out',amount:5000,cat:'সাধারণ'},
+  {date:'2022-02-22',desc:'royal k dilam dhar',type:'out',amount:115000,cat:'সাধারণ'},
+  {date:'2022-02-22',desc:'sohubul dilo next LC',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2022-02-22',desc:'esl dilo',type:'in',amount:117397,cat:'সাধারণ'},
+  {date:'2022-02-22',desc:'chitto k dilam',type:'out',amount:200000,cat:'সাধারণ'},
+  {date:'2022-02-23',desc:'sjibl k dilam',type:'out',amount:103000,cat:'ব্যাংক'},
+  {date:'2022-02-23',desc:'C raihan k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-02-23',desc:'delowar vai k dhar dilam',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2022-02-23',desc:'sohubul vai dilo ager LC te',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2022-02-23',desc:'SJIBL a dilam',type:'out',amount:200000,cat:'ব্যাংক'},
+  {date:'2022-02-27',desc:'Foisal dilo dilo IBBL a',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2022-02-27',desc:'Royel dilo SJIBL',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2022-02-28',desc:'asa k dilam',type:'out',amount:40000,cat:'সাধারণ'},
+  {date:'2022-02-28',desc:'sjibl k dilam',type:'out',amount:16000,cat:'ব্যাংক'},
+  {date:'2022-02-28',desc:'chitto k dilam',type:'out',amount:29000,cat:'সাধারণ'},
+  {date:'2022-02-28',desc:'dilam royal k sjibl a FF er',type:'out',amount:105800,cat:'ব্যাংক'},
+  {date:'2022-02-28',desc:'enamul bosundhara dilo ibbl a',type:'in',amount:70151,cat:'ব্যাংক'},
+  {date:'2022-03-01',desc:'bujhan k dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2022-03-01',desc:'chitto k ibbl a',type:'out',amount:124100,cat:'ব্যাংক'},
+  {date:'2022-03-02',desc:'varatiya dilo april er vara',type:'in',amount:5000,cat:'সাধারণ'},
+  {date:'2022-03-02',desc:'ESL joma dilo',type:'in',amount:133558,cat:'সাধারণ'},
+  {date:'2022-03-03',desc:'biton vai k dilam cash',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2022-03-08',desc:'sohubul dilo cash sjibl Lc te dilam',type:'in',amount:100000,cat:'ব্যাংক'},
+  {date:'2022-03-08',desc:'Foisal dhaka dilo IBBL a',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2022-03-08',desc:'ESL dilo IBBL',type:'in',amount:259343,cat:'ব্যাংক'},
+  {date:'2022-03-09',desc:'Biton Vai k cash dilam',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2022-03-09',desc:'dr. Arif dilo oil vanggate',type:'in',amount:500,cat:'সাধারণ'},
+  {date:'2022-03-09',desc:'Chitto k dilam IBBL a, for Mizan uttra',type:'out',amount:78000,cat:'ব্যাংক'},
+  {date:'2022-03-10',desc:'sunny k dilam cash',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2022-03-10',desc:'chitto dilam ibbl a',type:'out',amount:48500,cat:'ব্যাংক'},
+  {date:'2022-03-11',desc:'rumon k dilam bkash a',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-03-12',desc:'rumon k dilam bkash a',type:'out',amount:15000,cat:'সাধারণ'},
+  {date:'2022-03-13',desc:'ebl card a joma dilam',type:'out',amount:141320,cat:'ব্যাংক'},
+  {date:'2022-03-13',desc:'chitto k dilam bari vara',type:'out',amount:6000,cat:'সাধারণ'},
+  {date:'2022-03-14',desc:'rumon k dilam bkash a',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2022-03-15',desc:'rumon k dilam bkash a',type:'out',amount:25000,cat:'সাধারণ'},
+  {date:'2022-03-17',desc:'rumon dilo caah',type:'in',amount:100000,cat:'সাধারণ'},
+  {date:'2022-03-18',desc:'sohel vai dhaka k dilam',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2022-03-20',desc:'foisal dilo LC te',type:'in',amount:150000,cat:'ব্যাংক'},
+  {date:'2022-03-21',desc:'sjibl theke withdraw',type:'in',amount:160000,cat:'ব্যাংক'},
+  {date:'2022-03-21',desc:'LC korlam IBBL theke rico k',type:'out',amount:122000,cat:'ব্যাংক'},
+  {date:'2022-03-23',desc:'abu taher vai dilo',type:'in',amount:96000,cat:'সাধারণ'},
+  {date:'2022-03-23',desc:'chitto k IBBL a dilam',type:'out',amount:65000,cat:'ব্যাংক'},
+  {date:'2022-03-23',desc:'chitto k sofikul er hate dilam',type:'out',amount:118000,cat:'সাধারণ'},
+  {date:'2022-03-23',desc:'Itr a foisal dhaka dilo',type:'in',amount:550000,cat:'সাধারণ'},
+  {date:'2022-03-24',desc:'chitto k dilam stone babod',type:'out',amount:92000,cat:'স্টোন/ইট'},
+  {date:'2022-03-24',desc:'asa k dilam',type:'out',amount:30000,cat:'সাধারণ'},
+  {date:'2022-03-28',desc:'Abu Taher Vai cash dilo',type:'in',amount:35000,cat:'সাধারণ'},
+  {date:'2022-03-28',desc:'mahfuj Vai Kafela k dilam',type:'out',amount:35000,cat:'সাধারণ'},
+  {date:'2022-03-28',desc:'Chitto k dilam IBBL a',type:'out',amount:40000,cat:'ব্যাংক'},
+  {date:'2022-03-29',desc:'Asa k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-03-29',desc:'mahfuj vai Kafela k dilam',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2022-03-29',desc:'Foisal dhaka dilo Chitto revive koreche',type:'in',amount:65600,cat:'সাধারণ'},
+  {date:'2022-03-29',desc:'pubali court a dilam',type:'out',amount:32000,cat:'ব্যাংক'},
+  {date:'2022-03-30',desc:'shohag k dilam',type:'out',amount:15000,cat:'সাধারণ'},
+  {date:'2022-03-31',desc:'chitto dilo ibbl a',type:'out',amount:40000,cat:'ব্যাংক'},
+  {date:'2022-03-31',desc:'abutaher vai dilo',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2022-03-31',desc:'mahfuj kafela k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-03-31',desc:'ebl card a joma dilam',type:'out',amount:30000,cat:'ব্যাংক'},
+  {date:'2022-04-01',desc:'s ma k cash dilam',type:'out',amount:22500,cat:'পরিবার'},
+  {date:'2022-04-03',desc:'chitto dilo sona theke dhar',type:'in',amount:15000,cat:'সাধারণ'},
+  {date:'2022-04-03',desc:'robi bali k dilam bali 4 land',type:'out',amount:14000,cat:'সাধারণ'},
+  {date:'2022-04-03',desc:'meraj dilo stone er, sohubul vai er mall',type:'in',amount:85500,cat:'স্টোন/ইট'},
+  {date:'2022-04-03',desc:'roni k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-04-04',desc:'mahful vai kafela k dilam',type:'out',amount:35000,cat:'সাধারণ'},
+  {date:'2022-04-04',desc:'chitto k dilam',type:'out',amount:15000,cat:'সাধারণ'},
+  {date:'2022-04-07',desc:'sumon k dilam ff er',type:'out',amount:40000,cat:'সাধারণ'},
+  {date:'2022-04-05',desc:'Abu taher Vai dilo IBBL a',type:'in',amount:14980,cat:'ব্যাংক'},
+  {date:'2022-04-05',desc:'chitto k dilam IBBL a',type:'out',amount:93500,cat:'ব্যাংক'},
+  {date:'2022-04-06',desc:'chitto k dilam IBBL a india kolkatai dite',type:'out',amount:250000,cat:'ব্যাংক'},
+  {date:'2022-04-08',desc:'riyal Mahfuj kafela theke nilam dhar',type:'in',amount:100,cat:'সাধারণ'},
+  {date:'2022-04-08',desc:'Shohag k dilam ferot Robi stone er',type:'out',amount:30000,cat:'স্টোন/ইট'},
+  {date:'2022-04-11',desc:'sohel Vai dhaka k dilam',type:'out',amount:30000,cat:'সাধারণ'},
+  {date:'2022-04-17',desc:'Internet bill for home',type:'out',amount:400,cat:'সাধারণ'},
+  {date:'2022-05-24',desc:'riad k dilam',type:'out',amount:2000,cat:'সাধারণ'},
+  {date:'2022-05-24',desc:'ebl card a dilam',type:'out',amount:32000,cat:'ব্যাংক'},
+  {date:'2022-05-24',desc:'mahfuj vai k dilam',type:'out',amount:10000,cat:'সাধারণ'},
+  {date:'2022-05-26',desc:'asa k joma dilam',type:'out',amount:40000,cat:'সাধারণ'},
+  {date:'2022-05-27',desc:'pubali court a joma dilam',type:'out',amount:33000,cat:'ব্যাংক'},
+  {date:'2022-05-27',desc:'sjibl a joma dilam',type:'out',amount:13000,cat:'ব্যাংক'},
+  {date:'2022-05-28',desc:'riad k dilam',type:'out',amount:3000,cat:'সাধারণ'},
+  {date:'2022-05-28',desc:'LC insurance dilam IBBL a',type:'out',amount:2000,cat:'ব্যাংক'},
+  {date:'2022-05-28',desc:'dilam Sjibl CnG te',type:'out',amount:3000,cat:'ব্যাংক'},
+  {date:'2022-04-30',desc:'delawar vai k dhar filam',type:'out',amount:30000,cat:'সাধারণ'},
+  {date:'2022-05-01',desc:'sarowar umrah k dilam bkash a',type:'out',amount:4700,cat:'সাধারণ'},
+  {date:'2022-05-01',desc:'riyad k dilam',type:'out',amount:4000,cat:'সাধারণ'},
+  {date:'2022-05-01',desc:'delawar vai ferot dilo',type:'in',amount:30000,cat:'সাধারণ'},
+  {date:'2022-05-02',desc:'milon techno k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-05-04',desc:'chitto k dilam',type:'out',amount:4000,cat:'সাধারণ'},
+  {date:'2022-05-07',desc:'babu shohag dilo ferot',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2022-05-08',desc:'rumon dilo ferot',type:'in',amount:25000,cat:'সাধারণ'},
+  {date:'2022-05-08',desc:'delowar vai dhar dilo',type:'in',amount:70000,cat:'সাধারণ'},
+  {date:'2022-05-08',desc:'chitto k dilam robi stone er',type:'out',amount:91500,cat:'স্টোন/ইট'},
+  {date:'2022-05-08',desc:'robi court stone er dilo cash',type:'in',amount:50000,cat:'স্টোন/ইট'},
+  {date:'2022-05-10',desc:'kasshaf tanjimul a dilam',type:'out',amount:5000,cat:'শিক্ষা'},
+  {date:'2022-05-10',desc:'tutul vai dilo stone er',type:'in',amount:500000,cat:'স্টোন/ইট'},
+  {date:'2022-05-11',desc:'chitto k cash dilam sona te',type:'out',amount:385000,cat:'বিনিয়োগ'},
+  {date:'2022-05-12',desc:'delowar vai dhar nilam',type:'in',amount:70000,cat:'সাধারণ'},
+  {date:'2022-05-12',desc:'chitto k dilam',type:'out',amount:147380,cat:'সাধারণ'},
+  {date:'2022-05-15',desc:'octen nilam',type:'out',amount:2150,cat:'যাতায়াত'},
+  {date:'2022-05-16',desc:'shad dilo',type:'in',amount:7000,cat:'সাধারণ'},
+  {date:'2022-05-16',desc:'chitto dilo dhar',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2022-05-16',desc:'delwar vai k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-05-17',desc:'delwar Vai k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-05-19',desc:'shohag k dilam',type:'out',amount:30000,cat:'সাধারণ'},
+  {date:'2022-05-19',desc:'ebl card a joma dilam',type:'out',amount:27000,cat:'ব্যাংক'},
+  {date:'2022-05-19',desc:'sohel cnf vai dilo stone er',type:'in',amount:300000,cat:'স্টোন/ইট'},
+  {date:'2022-05-19',desc:'sohubul dilo sona te',type:'in',amount:300000,cat:'সাধারণ'},
+  {date:'2022-05-19',desc:'chitto k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-05-20',desc:'santunu da k dilam bkash',type:'out',amount:13500,cat:'সাধারণ'},
+  {date:'2022-05-20',desc:'robi dilo cash',type:'in',amount:20000,cat:'সাধারণ'},
+  {date:'2022-05-21',desc:'mobile iPhone 6s 2 pis',type:'out',amount:26500,cat:'সাধারণ'},
+  {date:'2022-05-22',desc:'shohag k dilam',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-05-22',desc:'insurance Razi',type:'out',amount:86920,cat:'সাধারণ'},
+  {date:'2022-05-22',desc:'delowar vai k dhar dilam',type:'out',amount:600000,cat:'সাধারণ'},
+  {date:'2022-05-22',desc:'vat er dilam akram k',type:'out',amount:4570,cat:'সরকারি/আইন'},
+  {date:'2022-05-23',desc:'Sjibl a Joma dilam',type:'out',amount:16000,cat:'ব্যাংক'},
+  {date:'2022-05-23',desc:'tasfin k dilam ff er',type:'out',amount:20000,cat:'সাধারণ'},
+  {date:'2022-05-24',desc:'tasfin k dilam ff er',type:'out',amount:5700,cat:'সাধারণ'},
+  {date:'2022-05-24',desc:'sohel vai cnf dilo',type:'in',amount:300000,cat:'সাধারণ'},
+  {date:'2022-05-24',desc:'chitto k dilam',type:'out',amount:290000,cat:'সাধারণ'},
+  {date:'2022-05-24',desc:'abu taher vai ibbl a dilo',type:'in',amount:99940,cat:'ব্যাংক'},
+  {date:'2022-05-24',desc:'asa k dilam',type:'out',amount:40000,cat:'সাধারণ'},
+  {date:'2022-05-25',desc:'sohubul dilo new lc er',type:'in',amount:600000,cat:'ব্যাংক'},
+  {date:'2022-05-25',desc:'sjibl a dilam from credit card',type:'out',amount:20000,cat:'ব্যাংক'},
+  {date:'2022-05-25',desc:'abu taher vai ibbl a dilo',type:'in',amount:63000,cat:'ব্যাংক'},
+  {date:'2022-05-26',desc:'20kg aam dilam sohel vai dhaka k',type:'out',amount:20,cat:'খাবার'},
+  {date:'2022-05-26',desc:'harez mama k dilam aam er',type:'out',amount:5000,cat:'সাধারণ'},
+  {date:'2022-05-28',desc:'chitto k dilam',type:'out',amount:200000,cat:'সাধারণ'},
+  {date:'2022-05-28',desc:'foisal dhaka dilo sjibl a',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2022-05-28',desc:'delowar vai dhar dilo',type:'in',amount:50000,cat:'সাধারণ'},
+  {date:'2022-05-30',desc:'foisal dhaka dilo ibbl a lc te',type:'in',amount:200000,cat:'ব্যাংক'},
+  {date:'2022-05-30',desc:'delowar k ferot dilam',type:'out',amount:50000,cat:'সাধারণ'},
+  {date:'2022-05-30',desc:'sjibl a dilam LTR a',type:'out',amount:50000,cat:'ব্যাংক'},
+  {date:'2022-05-30',desc:'pubali co
